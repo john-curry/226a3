@@ -27,4 +27,11 @@ class MyEdge implements Comparable<MyEdge>{
 	   return 0;
    }
 
+   public boolean equals(MyEdge o) {
+     if (o == null) return false;
+     if (this.weight() != o.weight()) return false;
+     if (o.minv() == this.minv() && o.maxv() == this.maxv()) return true;
+     return false;
+   }
+
 }
