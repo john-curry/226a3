@@ -12,7 +12,7 @@ all: $(TARGETS)
 	$(CC) -cp $(CLASSPATH) $(FLAGS) $<
 
 run:
-	java -ea $(OUT) $(ARGS)
+	java -classpath $(CLASSPATH) -ea $(OUT) $(ARGS)
 
 debug:$(TARGETS)
 	jdb MinMax

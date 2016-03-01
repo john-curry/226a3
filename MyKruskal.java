@@ -4,39 +4,39 @@ import edu.princeton.cs.algs4.*;
 import java.lang.Exception;
 import java.util.*;
 class MyKruskal {
-  private final boolean INCLUDE = true;
-  private final boolean REMOVE  = true;
+  public static final boolean INCLUDE = true;
+  public static final boolean REMOVE  = false;
   
+  private int V;
+  private int E;
   private long weight;                              // weight of MST
   private Queue<MyEdge> mst = new Queue<MyEdge>();  // edges in MST
+  private boolean connected = false;
 
-  public long weight() { return weight; }
-
+  public long weight() { return connected ? weight : -99; }
   public Iterable<MyEdge> edges() { return mst; }
+  public boolean IsConnected() { return connected; }
 
   public MyKruskal( MyEdgeWeightedGraph G ) {
     this( G , null , false );
   }
 
-  // three use cases
-  // 1) all edges included
-  // 2) one edge forced include
-  // 3) one edge forced remove
-
-  public MyKruskal(MyEdgeWeightedGraph G , MyEdge r, boolean include) {
-    MyEdge[] my_edges = without_edge_array( G , r );
-
-    assert my_edges != null : "Edges is null";
-
-    for (MyEdge e : my_edges) {
-      if (e == null) System.out.println("Found a null edge");
+  public MyKruskal(MyEdgeWeightedGraph G , MyEdge r, boolean method) {
+    MyEdgeWeightedGraph graph = G;
+    
+    if (method == REMOVE && r != null) {
+      graph = G.RemoveEdge(r);
     }
 
- 	 MinPQ<MyEdge> pq = new MinPQ<MyEdge>(my_edges);
- 	 
- 	 UF uf = new UF(G.V());
+    this.V = graph.V();
+    this.E = graph.V() - 1;
 
-    if (r != null && include == true) {
+
+ 	  MinPQ<MyEdge> pq = new MinPQ<MyEdge>(graph.EdgeArray());
+ 	 
+ 	  UF uf = new UF(G.V());
+
+    if (r != null && method == INCLUDE) {
       mst.enqueue(r);
       int v = r.either();
       int w = r.other(v);
@@ -54,44 +54,28 @@ class MyKruskal {
         weight += e.weight();
       }
     }
+    
+    this.connected = (new MyEdgeWeightedGraph( graph.V() , graph.EdgeArray() )).IsConnected();
+
+    if (this.connected) assert mst.size() == graph.V() - 1 : "The MST does not contain the right amount of edges: " + mst.size();
   }
-
-  public static MyEdge[] without_edge_array( MyEdgeWeightedGraph G , MyEdge r ) {
-    Bag<MyEdge> bag_edges = G.without_edge(r);
-    MyEdge[] edges = new MyEdge[bag_edges.size()];
-    int i = 0;
-    for (MyEdge e : bag_edges) {
-      edges[i] = e;
-      i++;
-    }
-    return edges;
-  }
-
-
-  public static MyEdge[] edge_array( MyEdgeWeightedGraph G ) {
-    MyEdge[] edges = new MyEdge[G.edges().size()];
-    int i = 0;
-    for (MyEdge e : G.edges()) {
-      edges[i] = e;
-      i++;
-    }
-    return edges;
-
-  }
-
 
   public static long include( MyEdgeWeightedGraph G ) {
     long inc_weight = 0;
-    for (MyEdge e : edge_array( G )) {
-      inc_weight += (new MyKruskal( G , e , true)).weight();
+    for (MyEdge e : G.EdgeArray()) {
+      MyKruskal mk = new MyKruskal( G , e , INCLUDE );
+      if (!mk.IsConnected()) return -99;
+      inc_weight += mk.weight();
     }
     return inc_weight;
   }
   
   public static long exclude( MyEdgeWeightedGraph G ) {
     long exc_weight = 0;
-    for (MyEdge e : edge_array( G )) {
-      exc_weight += (new MyKruskal( G , e , false)).weight();
+    for (MyEdge e : G.EdgeArray()) {
+      MyKruskal mk = new MyKruskal( G , e , REMOVE );
+      if (!mk.IsConnected()) return -99;
+      exc_weight += mk.weight();
     }
     return exc_weight;
   }
